@@ -1,7 +1,8 @@
-const Express = require('express');
+const express = require('express');
 const bodyParser = require('body-parser');
+const Joi = require('joi');
 
-const app = new Express();
+const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.text());
 
@@ -16,6 +17,11 @@ let genres = [
     }
 ];
 
+const GENRE_SCHEMA = Joi.object().keys({
+    id: Joi.number().integer().min(1).max(6).required(),
+    name: Joi.string().alphanum().regex(/[A-Za-z]{3,10}/).required()
+});
+
 function generate_ID(genres) {
     return Math.round(genres.reduce((sum, g) => sum + g.id, 0) / 9);
 }
@@ -24,7 +30,7 @@ app.get('/', (req, res) => {
     res.send('Welcome to VIDLY!!!');
 });
 
-app.get('/api/genres', (req, res) => {
+app.get('/api/genres/', (req, res) => {
     res.send(genres);
 });
 
@@ -40,26 +46,42 @@ app.get('/api/genres/:id', (req, res) => {
 });
 
 app.post('/api/genres/', (req, res) => {
-    const qname = req.body;
-
-    if (genres.find((g) => g.name == qname)) {
-        return res.status(400).send(`Genre name "${qname}" already exists.`);
+    const q_name = req.body;
+    if (genres.find((g) => g.name == q_name)) {
+        return res.status(400).send(`Genre name "${q_name}" already exists.`);
     }
 
-    const new_genre = { id: generate_ID(genres), name: qname };
+    const new_genre = { id: generate_ID(genres), name: q_name };
     genres.push(new_genre);
     res.send(`Posted ${JSON.stringify(new_genre)} successfully.`);
 });
 
-app.put('/api/genres', (req, res) => {
+app.put('/api/genres/', (req, res) => {
+    const result = Joi.validate(req.body, GENRE_SCHEMA);
+    if (result.error) {
+        return res.status(400).send(result.error);
+    }
 
+    const { id: genre_id, name: genre_name } = result.value;
+
+    if (genres.find(g => g.id == genre_id)) {
+        return res.status(400).send(`Genre ID ${genre_id} already exists.`);
+    }
+
+    if (genres.find(g => g.name == genre_name)) {
+        return res.status(400).send(`Genre name ${genre_name} already exists.`);
+    }
+
+    const new_genre = { id: genre_id, name: genre_name };
+    genres.push(new_genre);
+    res.send(`Posted ${JSON.stringify(new_genre)} successfully.`);
 });
 
 app.delete('/api/genres', (req, res) => {
 
 });
 
-const port = process.env.port || 8080;
+const port = process.env.port || 3000;
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}...`);
