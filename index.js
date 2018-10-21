@@ -77,8 +77,16 @@ app.put('/api/genres/', (req, res) => {
     res.send(`Posted ${JSON.stringify(new_genre)} successfully.`);
 });
 
-app.delete('/api/genres', (req, res) => {
+app.delete('/api/genres/', (req, res) => {
+    const q_name = req.body;
+    console.log(q_name);
+    const idx = genres.find((g) => g.name == q_name);
+    if (!idx) {
+        return res.status(404).send(`Genre name ${q_name} does not exist.`);
+    }
 
+    const deleted_genre = genres.splice(idx, 1);
+    res.send(`Deleted ${JSON.stringify(deleted_genre)} successfully.`);
 });
 
 const port = process.env.port || 3000;
