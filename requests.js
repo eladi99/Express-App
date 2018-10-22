@@ -1,12 +1,14 @@
 const app = require('./index');
 const genre_db = require('./genre_db');
+const Joi = require('joi');
+
 let genres = genre_db.genres;
 
-const Joi = require('joi');
 const GENRE_SCHEMA = Joi.object().keys({
     id: Joi.number().integer().min(1).max(6).required(),
     name: Joi.string().alphanum().regex(/[A-Za-z]{3,10}/).required()
 });
+
 
 app.get('/', (req, res) => {
     res.send('Welcome to VIDLY!!!');
@@ -66,7 +68,6 @@ app.put('/api/genres/', (req, res) => {
 
 app.delete('/api/genres/', (req, res) => {
     const q_name = req.body;
-    console.log(q_name);
     const idx = genres.find((g) => g.name == q_name);
     if (!idx) {
         return res.status(404).send(`Genre name ${q_name} does not exist.`);
