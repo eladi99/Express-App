@@ -1,8 +1,9 @@
-const app = require('./index');
-const genre_db = require('./genre_db');
+const express = require('express');
+const genre_db = require('../database/genre_db');
 const Joi = require('joi');
 
 let genres = genre_db.genres;
+const router = express.Router();
 
 const GENRE_SCHEMA = Joi.object().keys({
     id: Joi.number().integer().min(1).max(6).required(),
@@ -10,17 +11,12 @@ const GENRE_SCHEMA = Joi.object().keys({
 });
 
 
-app.get('/', (req, res) => {
-    res.send('Welcome to VIDLY!!!');
-});
-
-
-app.get('/api/genres/', (req, res) => {
+router.get('/', (req, res) => {
     res.send(genres);
 });
 
 
-app.get('/api/genres/:id', (req, res) => {
+router.get('/:id', (req, res) => {
     const qid = req.params.id;
     
     const genre = genres.find((g) => g.id == parseInt(qid));
@@ -32,19 +28,19 @@ app.get('/api/genres/:id', (req, res) => {
 });
 
 
-app.post('/api/genres/', (req, res) => {
+router.post('/', (req, res) => {
     const q_name = req.body;
     if (genres.find((g) => g.name == q_name)) {
         return res.status(400).send(`Genre name "${q_name}" already exists.`);
     }
 
-    const new_genre = { id:genre_db.generate_ID(genres), name: q_name };
+    const new_genre = { id: genre_db.generate_ID(genres), name: q_name };
     genres.push(new_genre);
     res.send(`Posted ${JSON.stringify(new_genre)} successfully.`);
 });
 
 
-app.put('/api/genres/', (req, res) => {
+router.put('/', (req, res) => {
     const result = Joi.validate(req.body, GENRE_SCHEMA);
     if (result.error) {
         return res.status(400).send(result.error);
@@ -66,7 +62,7 @@ app.put('/api/genres/', (req, res) => {
 });
 
 
-app.delete('/api/genres/', (req, res) => {
+router.delete('/', (req, res) => {
     const q_name = req.body;
     const idx = genres.find((g) => g.name == q_name);
     if (!idx) {
@@ -76,3 +72,5 @@ app.delete('/api/genres/', (req, res) => {
     const deleted_genre = genres.splice(idx, 1);
     res.send(`Deleted ${JSON.stringify(deleted_genre)} successfully.`);
 });
+
+module.exports = router;
