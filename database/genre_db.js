@@ -1,19 +1,15 @@
-let genres_arr = [
-    {
-        id: 3810,
-        name: 'mystery'
-    },
-    {
-        id: 2943,
-        name: 'thriller'
+const mongoose = require('mongoose');
+
+const genreSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        unique: true,
+        minlength: 3,
+        maxlength: 31
     }
-];
+});
 
-function generate_ID(genres) {
-    return Math.round(genres.reduce((sum, g) => sum + g.id, 0) / 9);
-}
+const Genre = mongoose.model('Genre', genreSchema);
 
-module.exports = {
-    genres: genres_arr,
-    generate_ID: generate_ID
-};
+module.exports = Genre;

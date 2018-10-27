@@ -1,25 +1,35 @@
 const express = require('express');
-const genre_db = require('../database/genre_db');
-const Joi = require('joi');
+const mongoose = require('mongoose');
+const Genre = require('../database/genre_db');
 
-let genres = genre_db.genres;
 const router = express.Router();
 
-const GENRE_SCHEMA = Joi.object().keys({
-    id: Joi.number().integer().min(1).max(6).required(),
-    name: Joi.string().alphanum().regex(/[A-Za-z]{3,10}/).required()
-});
+mongoose.connect('mongodb://localhost/vidly', { useNewUrlParser: true })
+    .then(() => console.log('Connected to MongoDB...'))
+    .catch(err => console.error('Could not connect to MongoDB...', err));
 
 
-router.get('/', (req, res) => {
+router.get('/', async (_, res) => {
+    const genres = await Genre.find().sort('name').select('id name');
     res.send(genres);
 });
 
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     const qid = req.params.id;
     
-    const genre = genres.find((g) => g.id == parseInt(qid));
+    let genre;
+    try {
+        genre = await Genre.findById(qid).select('id name');
+    }
+    catch(err) {
+        res.status(400);
+        if (err.kind == 'ObjectId') {
+            return res.send('Incompatible genre ID');
+        }
+        res.send(err.message);
+    }
+
     if (!genre) {
         return res.status(404).send(`Genre ID ${qid} does not exist.`);
     }
@@ -28,49 +38,42 @@ router.get('/:id', (req, res) => {
 });
 
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const q_name = req.body;
-    if (genres.find((g) => g.name == q_name)) {
+    if (await Genre.find({ name: q_name }).length > 0) {
         return res.status(400).send(`Genre name "${q_name}" already exists.`);
     }
+    
+    try {
+        await new Genre({ name: q_name }).save();         
+    } 
+    catch(err) {
+        res.status(400).send(err);
+    }
 
-    const new_genre = { id: genre_db.generate_ID(genres), name: q_name };
-    genres.push(new_genre);
-    res.send(`Posted ${JSON.stringify(new_genre)} successfully.`);
+    res.send(`Posted ${JSON.stringify(await Genre
+        .findOne({ name: q_name })
+        .select('id name'))} successfully.`);
 });
 
 
-router.put('/', (req, res) => {
-    const result = Joi.validate(req.body, GENRE_SCHEMA);
-    if (result.error) {
-        return res.status(400).send(result.error);
+router.put('/', async (req, res) => {
+    const { id, name } = req.body;
+    const genre = await Genre
+        .findByIdAndUpdate(id, { name: name }, { new: true })
+        .select('id name');
+    
+    if (!genre) {
+        return res.status(404).send(`Genre ID ${qid} does not exist.`);
     }
-
-    const { id: genre_id, name: genre_name } = result.value;
-
-    if (genres.find(g => g.id == genre_id)) {
-        return res.status(400).send(`Genre ID ${genre_id} already exists.`);
-    }
-
-    if (genres.find(g => g.name == genre_name)) {
-        return res.status(400).send(`Genre name ${genre_name} already exists.`);
-    }
-
-    const new_genre = { id: genre_id, name: genre_name };
-    genres.push(new_genre);
-    res.send(`Posted ${JSON.stringify(new_genre)} successfully.`);
+    
+    res.send(`Updated ${JSON.stringify(genre)} successfully.`);
 });
 
 
-router.delete('/', (req, res) => {
-    const q_name = req.body;
-    const idx = genres.find((g) => g.name == q_name);
-    if (!idx) {
-        return res.status(404).send(`Genre name ${q_name} does not exist.`);
-    }
-
-    const deleted_genre = genres.splice(idx, 1);
-    res.send(`Deleted ${JSON.stringify(deleted_genre)} successfully.`);
+router.delete('/', async (req, res) => {
+    const deleted_genre = await Genre.findOneAndRemove({ name: req.body }).select('id name');
+    res.send(`Deleted ${JSON.stringify(deleted_genre)} successfully.`)
 });
 
 module.exports = router;
