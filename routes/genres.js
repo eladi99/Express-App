@@ -1,13 +1,7 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const Genre = require('../database/genre_db');
+const Genre = require('../models/genre');
 
 const router = express.Router();
-
-mongoose.connect('mongodb://localhost/vidly', { useNewUrlParser: true })
-    .then(() => console.log('Connected to MongoDB...'))
-    .catch(err => console.error('Could not connect to MongoDB...', err));
-
 
 router.get('/', async (_, res) => {
     const genres = await Genre.find().sort('name').select('id name');
@@ -27,7 +21,7 @@ router.get('/:id', async (req, res) => {
         if (err.kind == 'ObjectId') {
             return res.send('Incompatible genre ID');
         }
-        res.send(err.message);
+        return res.send(err.message);
     }
 
     if (!genre) {
@@ -44,16 +38,15 @@ router.post('/', async (req, res) => {
         return res.status(400).send(`Genre name "${q_name}" already exists.`);
     }
     
+    const genre = await new Genre({ name: q_name });
     try {
-        await new Genre({ name: q_name }).save();         
+        genre.save();         
     } 
     catch(err) {
         res.status(400).send(err);
     }
 
-    res.send(`Posted ${JSON.stringify(await Genre
-        .findOne({ name: q_name })
-        .select('id name'))} successfully.`);
+    res.send(`Posted ${JSON.stringify(genre)} successfully.`);
 });
 
 
