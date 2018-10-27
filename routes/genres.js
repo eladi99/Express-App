@@ -34,6 +34,8 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
     const q_name = req.body;
+    
+    // Maybe validation covers this case
     if (await Genre.find({ name: q_name }).length > 0) {
         return res.status(400).send(`Genre name "${q_name}" already exists.`);
     }
@@ -65,8 +67,8 @@ router.put('/', async (req, res) => {
 
 
 router.delete('/', async (req, res) => {
-    const deleted_genre = await Genre.findOneAndRemove({ name: req.body }).select('id name');
-    res.send(`Deleted ${JSON.stringify(deleted_genre)} successfully.`)
+    const genre = await Genre.findOneAndRemove({ name: req.body }).select('id name');
+    res.send(`Deleted ${JSON.stringify(genre)} successfully.`)
 });
 
 module.exports = router;

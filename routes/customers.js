@@ -19,13 +19,13 @@ router.get('/:id', async (req, res) => {
     catch(err) {
         res.status(400);
         if (err.kind == 'ObjectId') {
-            return res.send('Incompatible genre ID');
+            return res.send('Incompatible customer ID');
         }
         return res.send(err.message);
     }
 
     if (!customer) {
-        return res.status(404).send(`Genre ID ${qid} does not exist.`);
+        return res.status(404).send(`Customer ID ${qid} does not exist.`);
     }
 
     res.send(customer);
@@ -70,8 +70,8 @@ router.put('/', async (req, res) => {
 
 
 router.delete('/', async (req, res) => {
-    const deleted_genre = await Customer.findOneAndRemove({ phone_num: req.body }).select('id name');
-    res.send(`Deleted ${JSON.stringify(deleted_genre)} successfully.`)
+    const customer = await Customer.findOneAndRemove({ phone_num: req.body }).select('id name');
+    res.send(`Deleted ${JSON.stringify(customer)} successfully.`)
 });
 
 module.exports = router;
