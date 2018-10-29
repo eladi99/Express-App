@@ -15,7 +15,9 @@ const customerSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        match: /05[0|2|3|4|5|7]-\d{7}/
+        match: /05[0|2|3|4|5|7]-?\d{7}/,
+        get: phone => phone[3] == '-'? phone : `${phone.slice(0, 3)}-${phone.slice(3)}`,
+        set: phone => phone[3] == '-'? phone : `${phone.slice(0, 3)}-${phone.slice(3)}`
     }
 });
 
