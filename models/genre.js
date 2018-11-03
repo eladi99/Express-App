@@ -5,6 +5,7 @@ const genreSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
+        trim: true,
         minlength: 3,
         maxlength: 31
     }
@@ -12,4 +13,5 @@ const genreSchema = new mongoose.Schema({
 
 const Genre = mongoose.model('Genre', genreSchema);
 
-module.exports = Genre;
+module.exports.Genre = Genre;
+module.exports.genreSchema = genreSchema;

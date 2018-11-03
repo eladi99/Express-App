@@ -1,5 +1,5 @@
 const express = require('express');
-const Genre = require('../models/genre');
+const { Genre } = require('../models/genre');
 
 const router = express.Router();
 
