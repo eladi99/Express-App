@@ -8,7 +8,6 @@ const home = require('./routes/home');
 
 const app = express();
 app.use(bodyParser.json());
-app.use(bodyParser.text());
 
 mongoose.connect('mongodb://localhost/vidly', { useNewUrlParser: true })
     .then(() => console.log('Connected to MongoDB...'))

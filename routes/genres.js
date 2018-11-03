@@ -33,7 +33,7 @@ router.get('/:id', async (req, res) => {
 
 
 router.post('/', async (req, res) => {
-    const name = req.body;
+    const { name } = req.body;
     const genre = await new Genre({ name: name });
     
     try {
@@ -54,20 +54,20 @@ router.post('/', async (req, res) => {
 
 router.put('/', async (req, res) => {
     let genre;
-    
+    const { id } = req.body;
     try {
         genre = await Genre
-            .findOneAndUpdate({ _id: req.body.id }, req.body, { new: true })
+            .findOneAndUpdate({ _id: id }, req.body, { new: true })
             .select('name');
     }
     catch(err) {
         if (err.kind == 'ObjectId' && err.path == "_id") {
-            return res.status(400).send(`Genre ID ${req.body.id} is invalid.`);
+            return res.status(400).send(`Genre ID ${id} is invalid.`);
         }
     }
     
     if (!genre) {
-        return res.status(404).send(`Genre ID ${req.body.id} does not exist.`);
+        return res.status(404).send(`Genre ID ${id} does not exist.`);
     }
     
     res.send(`Updated ${JSON.stringify(genre)} successfully.`);
@@ -75,10 +75,11 @@ router.put('/', async (req, res) => {
 
 
 router.delete('/', async (req, res) => {
-    const genre = await Genre.findOneAndDelete({ _id: req.body }).select('name');
+    const { id } = req.body;
+    const genre = await Genre.findOneAndDelete({ _id: id }).select('name');
     
     if (!genre) {
-        return res.status(404).send(`Genre ID ${req.body} does not exist.`)
+        return res.status(404).send(`Genre ID ${id} does not exist.`)
     }
     
     res.send(`Deleted ${JSON.stringify(genre)} successfully.`)

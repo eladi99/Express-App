@@ -15,7 +15,6 @@ router.get('/', async (_, res) => {
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
     let customer;
-    
     try {
         customer = await Customer.findById(id).select('-__v');
     }
@@ -38,8 +37,8 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     const { name, isGold, phone_num } = req.body;
     const customer = await new Customer(
-        { name: name, isGold: isGold, phone_num: phone_num });
-    
+        { name: name, isGold: isGold, phone_num: phone_num }
+    );
     try {
         await customer.save();         
     } 
@@ -57,16 +56,16 @@ router.post('/', async (req, res) => {
 
 
 router.put('/', async (req, res) => {
+    const { id } = req.body;
     let customer;
-    
     try {
         customer = await Customer
-            .findOneAndUpdate({ _id: req.body.id }, req.body, { new: true })
+            .findOneAndUpdate({ _id: id }, req.body, { new: true })
             .select('name phone_num');
     }
     catch(err) {
         if (err.kind == 'ObjectId' && err.path == "_id") {
-            return res.status(400).send(`Customer ID ${req.body.id} is invalid.`);
+            return res.status(400).send(`Customer ID ${id} is invalid.`);
         }
 
         return res.status(404).send(err);
@@ -81,12 +80,13 @@ router.put('/', async (req, res) => {
 
 
 router.delete('/', async (req, res) => {
+    const { id } = req.body;
     const customer = await Customer
-        .findOneAndDelete({ _id: req.body })
+        .findOneAndDelete({ _id: id })
         .select('name phone_num');
 
     if (!customer) {
-        return res.status(404).send(`Customer ID ${req.body} does not exist.`)
+        return res.status(404).send(`Customer ID ${id} does not exist.`)
     }
     
     res.send(`Deleted ${JSON.stringify(customer)} successfully.`)
