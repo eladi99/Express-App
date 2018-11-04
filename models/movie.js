@@ -25,8 +25,9 @@ const Movie = mongoose.model('Movie', new mongoose.Schema({
     dailyRentalRate: {
         type: Number,
         min: 0,
+        max: 63,
         default: 0,
-        max: 63
+        set: num => Math.floor(num)
     }
 }));
 
